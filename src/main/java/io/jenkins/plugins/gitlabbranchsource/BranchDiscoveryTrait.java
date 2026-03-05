@@ -143,6 +143,9 @@ public class BranchDiscoveryTrait extends SCMSourceTrait {
                 ctx.wantOriginMRs(true);
                 ctx.withFilter(new OnlyOriginMRBranchesSCMHeadFilter(getBranchesAlwaysIncludedRegexPattern()));
                 break;
+            case 4:
+                ctx.withFilter(new OnlyExplicitlyListedBranchesSCMHeadFilter(getBranchesAlwaysIncludedRegexPattern()));
+                break;
             case 3:
             default:
                 // we don't care if it is a MR or not, we're taking them all, no need to ask for MRs and no need
@@ -204,6 +207,7 @@ public class BranchDiscoveryTrait extends SCMSourceTrait {
             ListBoxModel result = new ListBoxModel();
             result.add(Messages.BranchDiscoveryTrait_excludeMRs(), "1");
             result.add(Messages.BranchDiscoveryTrait_onlyMRs(), "2");
+            result.add(Messages.BranchDiscoveryTrait_onlyExplicitlyListed(), "4");
             result.add(Messages.BranchDiscoveryTrait_allBranches(), "3");
             return result;
         }
@@ -330,6 +334,43 @@ public class BranchDiscoveryTrait extends SCMSourceTrait {
                         return true;
                     }
                 }
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Filter that excludes all branches except those matching the always-included regex.
+     */
+    public static class OnlyExplicitlyListedBranchesSCMHeadFilter extends SCMHeadFilter {
+
+        /**
+         * The compiled {@link Pattern} of the branchesAlwaysIncludedRegex.
+         */
+        private final Pattern branchesAlwaysIncludedRegexPattern;
+
+        /**
+         * Constructor
+         *
+         * @param branchesAlwaysIncludedRegexPattern the branchesAlwaysIncludedRegexPattern.
+         */
+        public OnlyExplicitlyListedBranchesSCMHeadFilter(Pattern branchesAlwaysIncludedRegexPattern) {
+            this.branchesAlwaysIncludedRegexPattern = branchesAlwaysIncludedRegexPattern;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean isExcluded(@NonNull SCMSourceRequest request, @NonNull SCMHead head) {
+            if (head instanceof BranchSCMHead) {
+                if (branchesAlwaysIncludedRegexPattern != null
+                        && branchesAlwaysIncludedRegexPattern
+                                .matcher(head.getName())
+                                .matches()) {
+                    return false;
+                }
+                return true;
             }
             return false;
         }

@@ -7,12 +7,12 @@
       changes both as a
       merge request and as a branch.
     </dd>
-    <dt>Only branches that are also filed as MRs</dt>
+    <dt>Only build MRs (suppress branch builds for branches filed as MRs)</dt>
     <dd>
-      This option exists to preserve legacy behaviour when upgrading from older versions of the
-      plugin.
-      NOTE: If you have an actual use case for this option please file a merge request against this
-      text.
+      Branches that are filed as a merge request will <strong>not</strong> be built as branches —
+      only the merge request head is built. This avoids duplicate builds when origin merge request
+      discovery is also enabled. Branches matching the "Branches to always include" regex are exempt
+      and will still be built as branches regardless.
     </dd>
     <dt>All branches</dt>
     <dd>

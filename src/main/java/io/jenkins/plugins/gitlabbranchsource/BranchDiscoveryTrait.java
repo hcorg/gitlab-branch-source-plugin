@@ -293,7 +293,8 @@ public class BranchDiscoveryTrait extends SCMSourceTrait {
     }
 
     /**
-     * Filter that excludes branches that are not also filed as a merge request.
+     * Filter that excludes all branches so that only MR heads are built.
+     * Branches matching the always-included regex are exempted.
      */
     public static class OnlyOriginMRBranchesSCMHeadFilter extends SCMHeadFilter {
 
@@ -316,20 +317,15 @@ public class BranchDiscoveryTrait extends SCMSourceTrait {
          */
         @Override
         public boolean isExcluded(@NonNull SCMSourceRequest request, @NonNull SCMHead head) {
-            if (head instanceof BranchSCMHead && request instanceof GitLabSCMSourceRequest) {
+            if (head instanceof BranchSCMHead) {
                 if (branchesAlwaysIncludedRegexPattern != null
                         && branchesAlwaysIncludedRegexPattern
                                 .matcher(head.getName())
                                 .matches()) {
                     return false;
                 }
-
-                for (MergeRequest m : ((GitLabSCMSourceRequest) request).getMergeRequests()) {
-                    if (m.getSourceProjectId().equals(m.getTargetProjectId())
-                            && !m.getSourceBranch().equalsIgnoreCase(head.getName())) {
-                        return true;
-                    }
-                }
+                // Exclude all branch heads; the corresponding MR head is built instead.
+                return true;
             }
             return false;
         }
